@@ -33,11 +33,9 @@ var counter = 0
 
 fun main() {
     runBlocking {
-        withContext(Dispatchers.Default) {
+        withContext(counterContext) {
             massiveRun {
-                withContext(counterContext) {
-                    counter++
-                }
+                counter++
             }
         }
     }
