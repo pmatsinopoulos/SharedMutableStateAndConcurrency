@@ -4,14 +4,13 @@
 package com.panosmatsinopoulos.sharedmutablestateandconcurrency
 
 import kotlinx.coroutines.*
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.measureTimeMillis
 
 fun log(message: String) {
     println("[Thread: ${Thread.currentThread().name}] $message")
 }
 
-suspend fun massiveRun(action: () -> Unit) {
+suspend fun massiveRun(action: suspend () -> Unit) {
     val n = 100 // number of coroutines to launch
     val k = 1_000 // times an action is repeated by each coroutine
     val time = measureTimeMillis {
@@ -28,12 +27,18 @@ suspend fun massiveRun(action: () -> Unit) {
     log("Completed ${n * k} actions in $time ms")
 }
 
-var counter = AtomicInteger()
+@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+val counterContext = newSingleThreadContext("CounterContext")
+var counter = 0
 
 fun main() {
     runBlocking {
         withContext(Dispatchers.Default) {
-            massiveRun { counter.incrementAndGet() }
+            massiveRun {
+                withContext(counterContext) {
+                    counter++
+                }
+            }
         }
     }
     log("Counter now is $counter")
