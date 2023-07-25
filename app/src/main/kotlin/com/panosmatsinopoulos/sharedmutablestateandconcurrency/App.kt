@@ -27,9 +27,10 @@ suspend fun massiveRun(action: () -> Unit) {
     log("Completed ${n * k} actions in $time ms")
 }
 
-fun main() {
-    var counter = 0
+@Volatile
+var counter = 0
 
+fun main() {
     runBlocking {
         withContext(Dispatchers.Default) {
             massiveRun { counter++ }
