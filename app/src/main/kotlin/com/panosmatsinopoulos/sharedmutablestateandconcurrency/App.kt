@@ -3,13 +3,37 @@
  */
 package com.panosmatsinopoulos.sharedmutablestateandconcurrency
 
-class App {
-    val greeting: String
-        get() {
-            return "Hello World!"
+import kotlinx.coroutines.*
+import kotlin.system.measureTimeMillis
+
+fun log(message: String) {
+    println("[Thread: ${Thread.currentThread().name}] $message")
+}
+
+suspend fun massiveRun(action: () -> Unit) {
+    val n = 100 // number of coroutines to launch
+    val k = 1_000 // times an action is repeated by each coroutine
+    val time = measureTimeMillis {
+        coroutineScope { // scope for coroutines
+            repeat(n) {
+                launch {
+                    repeat(k) {
+                        action()
+                    }
+                }
+            }
         }
+    }
+    log("Completed ${n * k} actions in $time ms")
 }
 
 fun main() {
-    println(App().greeting)
+    var counter = 0
+
+    runBlocking {
+        withContext(Dispatchers.Default) {
+            massiveRun { counter++ }
+        }
+    }
+    log("Counter now is $counter")
 }
