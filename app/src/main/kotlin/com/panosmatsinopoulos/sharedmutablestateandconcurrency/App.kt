@@ -4,6 +4,8 @@
 package com.panosmatsinopoulos.sharedmutablestateandconcurrency
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.system.measureTimeMillis
 
 fun log(message: String) {
@@ -27,15 +29,16 @@ suspend fun massiveRun(action: suspend () -> Unit) {
     log("Completed ${n * k} actions in $time ms")
 }
 
-@OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
-val counterContext = newSingleThreadContext("CounterContext")
+val mutex = Mutex()
 var counter = 0
 
 fun main() {
     runBlocking {
-        withContext(counterContext) {
+        withContext(Dispatchers.Default) {
             massiveRun {
-                counter++
+                mutex.withLock {
+                    counter++
+                }
             }
         }
     }
