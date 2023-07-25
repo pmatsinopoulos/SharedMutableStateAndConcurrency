@@ -4,6 +4,7 @@
 package com.panosmatsinopoulos.sharedmutablestateandconcurrency
 
 import kotlinx.coroutines.*
+import java.util.concurrent.atomic.AtomicInteger
 import kotlin.system.measureTimeMillis
 
 fun log(message: String) {
@@ -27,13 +28,12 @@ suspend fun massiveRun(action: () -> Unit) {
     log("Completed ${n * k} actions in $time ms")
 }
 
-@Volatile
-var counter = 0
+var counter = AtomicInteger()
 
 fun main() {
     runBlocking {
         withContext(Dispatchers.Default) {
-            massiveRun { counter++ }
+            massiveRun { counter.incrementAndGet() }
         }
     }
     log("Counter now is $counter")
